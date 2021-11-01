@@ -1,13 +1,494 @@
 package ejercicioHibernate1.ejercicioHibernate1;
 
-/**
- * Hello world!
- *
- */
-public class App 
-{
-    public static void main( String[] args )
-    {
-        System.out.println( "Hello World!" );
-    }
+import java.net.URL;
+import java.util.List;
+import java.util.Scanner;
+
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
+import org.apache.log4j.PropertyConfigurator;
+
+import dao.DepartamentoDAO;
+import dao.EmpleadoDAO;
+import entity.Departamento;
+import entity.Empleado;
+
+public class App {
+	
+	// Método que pide un string por consola con la indicación de 'texto'
+	public static String pedirString(String texto) {
+		String salida;
+			
+		System.out.println(texto); // Ejemplo: texto="Introduzca si/no"
+		Scanner entrada=new Scanner(System.in);
+		salida=entrada.nextLine();
+		// entrada.close();		
+		return salida;		
+	}
+	
+	public static int mostrarMenu(String []opciones) {
+		int opcionIntroducida=-1;
+		
+		// Muestra el menú a partir de un array de String y añade la opción "salir" al final
+		System.out.println("\nElija una opción del menú siguiente:");
+		for (int i=0; i<opciones.length; i++) {
+			System.out.println("Pulsa " + (i+1) + ": " + opciones[i]);
+		}
+		System.out.println("Pulsa " + (opciones.length+1) + ": Salir.");
+
+		do {
+			String entradaIntroducida=pedirString("Introduzca su opción:");
+			try {
+				opcionIntroducida=Integer.parseInt(entradaIntroducida); // Puede generar excepción si no puede convertir a integer
+				if (opcionIntroducida<=0 || opcionIntroducida>opciones.length+1) {
+					System.out.print("La opción no es válida. ");
+				}
+			} catch (Exception e) {
+				// Captura NumberFormatException (introducir string en el parseInt)
+//				logger.info(">>>> " + Thread.currentThread().getStackTrace()[1].getMethodName() + ": Imposible convertir el string '" + entradaIntroducida + "' en un int: " + e.getClass());
+				// El logger captura el nombre del método que genera la excepción: Aclaración del error: clase de la excepción
+			}
+				
+		} while (opcionIntroducida<=0 || opcionIntroducida>opciones.length+1);
+		// entradaIntroducida.close();
+		return opcionIntroducida;
+	}
+	
+	
+	
+	// Hay que crear una instancia de tipo Logger en cada clase que queramos hacer un seguimiento de log
+	private static Logger logger = LogManager.getLogger(App.class);
+	//private static Logger logger = LogManager.getLogger(NOMBRE_CLASE.class);
+	
+    public static void main( String[] args ){
+    	
+		/* Esto solo en el main y una vez por proyecto */
+    	
+		ClassLoader loader = Thread.currentThread().getContextClassLoader();
+		URL url = loader.getResource("log4j.properties");
+		PropertyConfigurator.configure(url);
+		
+		/**/
+    	
+    	final String []opciones = {			
+    			"Insertar un Empleado en la BBDD.",
+    			"Leer/Extraer un Empleado de la BBDD.",
+    			"Actualizar la BBDD modificando un Empleado existente.",
+    			"Borrar un Empleado de la BBDD.",
+    			
+    			"Insertar un Departamento en la BBDD.",
+    			"Leer/Extraer un Departamento de la BBDD.",
+    			"Actualizar la BBDD modificando un Departamento existente.",
+    			"Borrar un Departamento de la BBDD."
+    			};
+        
+        boolean exit = false; // flag de salida para el bucle do-while del switch
+
+		do {
+			switch (mostrarMenu(opciones)) {
+			case 1: // Insertar Empleado
+				System.out.println("Se va a insertar un empleado:");
+				String nombre1 = pedirString("Introduce el nombre: ");
+				String apellido1 = pedirString("Introduce el primer apellido: ");
+				String apellido2 = pedirString("Introduce el segundo apellido: ");
+
+				// Hay que ver el último id de la tabla para pasar como parámetro el inmediato superior
+				List<Empleado> empleadosTabla = EmpleadoDAO.getAllEmpleados();
+				int ultimoIdUsado = empleadosTabla.get(empleadosTabla.size() - 1).getCodigo(); // Se coge el código del último (size-1) elemento de la lista
+
+				// Empleado employee=new Empleado(nombre, apellido1, apellido2); // Para pruebas
+				// Empleado employee=new Empleado(3, "Perez", "Lopez", 0, "", "", "", "Juan",
+				// "", ""); // Para pruebas
+				Empleado employee1 = new Empleado(ultimoIdUsado + 1, nombre1, apellido1, apellido2);
+
+				EmpleadoDAO.insertEmpleado(employee1);
+
+				break;
+
+			case 2: // Leer/Extraer Empleado
+				try {
+					System.out.println("Se va a leer un empleado:");
+					String entradaId2=pedirString("Introduce el id: ");
+					int id2 = Integer.parseInt(entradaId2);
+					
+					if (EmpleadoDAO.existeEmpleado(id2)) {
+						Empleado employee2 = EmpleadoDAO.getEmpleado(id2);
+						System.out.println(employee2.toString()); // Lo mostramos por consola
+					}
+					else {
+						System.out.println("No existe ningún empleado en la BBDD con el id: " + id2);
+					}
+				} catch (Exception e) {
+					// Captura NumberFormatException (introducir string en el parseInt)
+				}
+
+				break;
+
+			case 3: // Actualizar Empleado
+				try {
+					System.out.println("Se va a actualizar un empleado:");
+					String entradaId3=pedirString("Introduce el id: ");
+					int id3 = Integer.parseInt(entradaId3);
+					
+					// Hay que comprobar que existe en la base de datos para poder actualizarlo, sino se muestra un mensaje y no se hace nada
+					if (EmpleadoDAO.existeEmpleado(id3)) {
+						System.out.println("Se va a actualizar el empleado: " + EmpleadoDAO.getEmpleado(id3).toString());
+						String nombre3 = pedirString("Introduce el nombre: ");
+						String ap1 = pedirString("Introduce el primer apellido: ");
+						String ap2 = pedirString("Introduce el segundo apellido: ");
+						Empleado employee3 = new Empleado(id3, nombre3, ap1, ap2);
+
+						EmpleadoDAO.updateEmpleado(employee3);
+
+					} else {
+						System.out.println("No existe ningún empleado en la BBDD con el id: " + id3);
+					}
+
+				} catch (Exception e) {
+					// Captura NumberFormatException (introducir string en el parseInt)
+				}
+
+				break;
+
+			case 4: // Borrar Empleado
+				try {
+					System.out.println("Se va a eliminar un empleado:");					
+					String entradaId4=pedirString("Introduce el id: ");
+					int id4 = Integer.parseInt(entradaId4);
+					
+					// Hay que comprobar que existe en la base de datos para poder borrarlo, sino se muestra un mensaje y no se hace nada
+					if (EmpleadoDAO.existeEmpleado(id4)) {
+						System.out.println("Se va a elimirar el empleado: " + EmpleadoDAO.getEmpleado(id4).toString());
+						EmpleadoDAO.deleteEmpleado(EmpleadoDAO.getEmpleado(id4));
+					} 
+					else {
+						System.out.println("No existe ningún empleado en la BBDD con el id: " + id4);
+					}
+
+				} catch (Exception e) {
+					// Captura NumberFormatException (introducir string en el parseInt)
+				}
+
+				break;
+
+			case 5:	// Insertar Departamento
+				try {
+					System.out.println("Se va a insertar un departamento:");
+					String nombre5 = pedirString("Introduce el nombre: ");
+					String entradaCodResponsable = pedirString("Introduce el código de responsable: ");
+					int codResponsable=Integer.parseInt(entradaCodResponsable); // Puede generar excepción si no puede convertir a integer
+					
+					// Hay que ver el último id de la tabla para pasar como parámetro el inmediato superior
+					List<Departamento> departamentosTabla = DepartamentoDAO.getAllDepartamentos();
+					int ultimoCodigoUsado = departamentosTabla.get(departamentosTabla.size() - 1).getCodigo(); // Se coge el código del último (size-1) elemento de la lista
+				
+					Departamento deparment5=new Departamento(ultimoCodigoUsado+1, nombre5, codResponsable);
+					
+					DepartamentoDAO.insertDepartamento(deparment5);
+				} catch (Exception e) {
+					// Captura NumberFormatException (introducir string en el parseInt)
+					System.out.println("Tipo incorrecto");
+				}
+				
+				break;
+				
+			case 6: // Leer/Extraer Departamento
+				try {
+					System.out.println("Se va a leer un departamento:");
+					String entradaId6=pedirString("Introduce el id: ");
+					int id6 = Integer.parseInt(entradaId6);
+					
+					if (DepartamentoDAO.existeDepartamento(id6)) {
+						Departamento department2 = DepartamentoDAO.getDepartamento(id6);
+						System.out.println(department2.toString()); // Lo mostramos por consola
+					}
+					else {
+						System.out.println("No existe ningún departamento en la BBDD con el id: " + id6);
+					}
+				} catch (Exception e) {
+					// Captura NumberFormatException (introducir string en el parseInt)
+					System.out.println("Tipo incorrecto");
+				}
+
+				break;
+
+			case 7:  // Actualizar Departamento
+				try {
+					System.out.println("Se va a actualizar un departamento:");
+					String entradaId7=pedirString("Introduce el id: ");
+					int id7 = Integer.parseInt(entradaId7);
+					
+					// Hay que comprobar que existe en la base de datos para poder actualizarlo, sino se muestra un mensaje y no se hace nada
+					if (DepartamentoDAO.existeDepartamento(id7)) {
+						System.out.println("Se va a actualizar el departamento: " + DepartamentoDAO.getDepartamento(id7).toString());
+						String nombre7 = pedirString("Introduce el nombre: ");
+						String entradaCodResponsable = pedirString("Introduce el código de responsable: ");
+						int codResponsable=Integer.parseInt(entradaCodResponsable); // Puede generar excepción si no puede convertir a integer
+						
+						Departamento deparment7=new Departamento(id7, nombre7, codResponsable);
+						
+						DepartamentoDAO.updateDepartamento(deparment7);
+					} else {
+						System.out.println("No existe ningún departamento en la BBDD con el id: " + id7);
+					}
+
+				} catch (Exception e) {
+					// Captura NumberFormatException (introducir string en el parseInt)
+					System.out.println("Tipo incorrecto");
+				}
+
+				break;
+
+			case 8: // Borrar Departamento
+				try {
+					System.out.println("Se va a eliminar un departamento:");					
+					String entradaId8=pedirString("Introduce el id: ");
+					int id8 = Integer.parseInt(entradaId8);
+					
+					// Hay que comprobar que existe en la base de datos para poder borrarlo, sino se muestra un mensaje y no se hace nada
+					if (DepartamentoDAO.existeDepartamento(id8)) {
+						System.out.println("Se va a elimirar el departamento: " + DepartamentoDAO.getDepartamento(id8).toString());
+						DepartamentoDAO.deleteDepartamento(DepartamentoDAO.getDepartamento(id8));
+					} 
+					else {
+						System.out.println("No existe ningún departamento en la BBDD con el id: " + id8);
+					}
+
+				} catch (Exception e) {
+					// Captura NumberFormatException (introducir string en el parseInt)
+					System.out.println("Tipo incorrecto");
+				}
+
+				break;
+			case 9:
+				System.out.println("Fin del programa.");
+				exit = true;
+				break;
+				
+			} // fin switch
+		} while (exit == false);
+        
+    } // fin main
 }
+        
+    
+//VERSION CON session COMO PARÁMETRO Y SIN LA PARTE DE DEPARTAMENTOS
+//
+//package ejercicioHibernate1.ejercicioHibernate1;
+//
+//import java.net.URL;
+//import java.util.List;
+//import java.util.Scanner;
+//
+//import org.apache.log4j.LogManager;
+//import org.apache.log4j.Logger;
+//import org.apache.log4j.PropertyConfigurator;
+//import org.hibernate.Session;
+//import org.hibernate.SessionFactory;
+//import org.hibernate.Transaction;
+//
+//import dao.EmpleadoDAO;
+//import entity.Empleado;
+//
+//public class App {
+//	
+//	// Método que pide un string por consola con la indicación de 'texto'
+//	public static String pedirString(String texto) {
+//		String salida;
+//			
+//		System.out.println(texto); // Ejemplo: texto="Introduzca si/no"
+//		Scanner entrada=new Scanner(System.in);
+//		salida=entrada.nextLine();
+//		// entrada.close();		
+//		return salida;		
+//	}
+//	
+//	public static int mostrarMenu(String []opciones) {
+//		int opcionIntroducida;
+//		// Muestra el menú a partir de un array de String y añade la opción "salir" al final
+//		System.out.println("\nElija una opción del menú siguiente:");
+//		for (int i=0; i<opciones.length; i++) {
+//			System.out.println("Pulsa " + (i+1) + ": " + opciones[i]);
+//		}
+//		System.out.println("Pulsa " + (opciones.length+1) + ": Salir.");
+//		
+//		// Lee un int por consola con la opción elegida entre los posibles valores del menú
+//		do {
+//			System.out.println("Introduzca su opción:");
+//			opcionIntroducida=new Scanner(System.in).nextInt();	
+//			if (opcionIntroducida<=0 || opcionIntroducida>opciones.length+1) {
+//				System.out.print("La opción no es válida. ");
+//			}
+//		} while (opcionIntroducida<=0 || opcionIntroducida>opciones.length+1);
+//		// opcionIntroducida.close();
+//		return opcionIntroducida;
+//	}
+//	
+//	
+//	
+//	// Hay que crear una instancia de tipo Logger en cada clase que queramos hacer un seguimiento de log
+//	private static Logger logger = LogManager.getLogger(App.class);
+//	//private static Logger logger = LogManager.getLogger(NOMBRE_CLASE.class);
+//	
+//    public static void main( String[] args ){
+//    	
+//		/* Esto solo en el main y una vez por proyecto */
+//    	
+//		ClassLoader loader = Thread.currentThread().getContextClassLoader();
+//		URL url = loader.getResource("log4j.properties");
+//		PropertyConfigurator.configure(url);
+//		
+//		/**/
+//    	
+//    	final String []opciones={			
+//    			"Insertar un Empleado en la BBDD.",
+//    			"Leer/Extraer un Empleado de la BBDD.",
+//    			"Actualizar la BBDD modificando un Empleado existente.",
+//    			"Borrar un Empleado de la BBDD.",
+//    			
+//    			"Insertar un Departamento en la BBDD.",
+//    			"Leer/Extraer un Departamento de la BBDD.",
+//    			"Actualizar la BBDD modificando un Departamento existente.",
+//    			"Borrar un Departamento de la BBDD."
+//    			};
+//        
+//        boolean exit=false; // Para el bucle do-while del switch
+//        
+//        Session session = HibernateUtil.getSessionFactory().openSession(); // Copiada la clase HibernateUtil de su proyecto
+//		Transaction tx = null;
+//        
+//        try {        	
+//        	tx = session.beginTransaction();
+//        	
+//        	do {
+//        		switch (mostrarMenu(opciones)) {
+//        		case 1: // Insertar
+//        			System.out.println("Se va a insertar un empleado:");
+//        			String nombre=pedirString("Introduce el nombre: ");
+//        			String apellido1=pedirString("Introduce el primer apellido: ");
+//        			String apellido2=pedirString("Introduce el segundo apellido: ");
+//        			
+//        			// Hay que ver el último id de la tabla para pasar como parámetro el inmediato superior
+//        			List<Empleado> empleadosTabla = EmpleadoDAO.getAllEmpleados(session);
+//        			int ultimoIdUsado=empleadosTabla.get(empleadosTabla.size()-1).getCodigo(); // Se coge el código del último (size-1) elemento de la lista
+//        			
+//        			//Empleado employee=new Empleado(nombre, apellido1, apellido2); // Para pruebas
+//        			//Empleado employee=new Empleado(3, "Perez", "Lopez", 0, "", "", "", "Juan", "", ""); // Para pruebas
+//        			Empleado employee1=new Empleado(ultimoIdUsado+1, nombre, apellido1, apellido2);
+//        			
+//        			EmpleadoDAO.insertEmpleado(session, employee1);
+//        			
+//        			tx.commit();
+//        			break;	
+//        			
+//        		case 2: // Leer/Extraer
+//        			try {
+//        				System.out.println("Se va a leer un empleado:");
+//        				int id1=Integer.parseInt(pedirString("Introduce el id: "));
+//        				Empleado employee2=EmpleadoDAO.getEmpleado(session, id1);
+//        				
+//        				System.out.println(employee2.toString()); // Lo mostramos por consola     				
+//        				
+//        			} catch (Exception e){
+//        				// Captura NumberFormatException
+//        			}
+//        			
+//        			//tx.commit(); Aquí no hace falta porque no se modifica la tabla.
+//        			break;
+//        			
+//        		case 3: // Actualizar
+//        			
+//        			// Hay que comprobar que existe en la base de datos para poder actualizarlo, sino se muestra un mensaje y no se hace nada
+//        			boolean existeEmpleado=false;
+//        			Empleado empl=new Empleado();
+//        			
+//        			/*
+//        			int id3=Integer.parseInt(pedirString("Introduce el id: "));
+//        			String nombre1=pedirString("Introduce el nombre: ");
+//        			String ap1=pedirString("Introduce el primer apellido: ");
+//        			String ap2=pedirString("Introduce el segundo apellido: ");
+//        			Empleado employee3=new Empleado(id3, nombre1, ap1, ap2);
+//        			EmpleadoDAO.updateEmpleado(session, employee3);
+//        			*/
+//        			try {
+//        				
+//        				System.out.println("Se va a modificar un empleado:");
+//        				int id3=Integer.parseInt(pedirString("Introduce el id: "));
+//        				
+//        				// Comprobamos que existe el empleado en la BBDD -> existeEmpleado=true; 
+//        				List<Empleado> empleadosTabla3 = EmpleadoDAO.getAllEmpleados(session);
+//        				for (Empleado empleado : empleadosTabla3) {
+//        					if (empleado.getCodigo()==id3) {
+//        						existeEmpleado=true;
+//        						empl=empleado;
+//        					}        					
+//        				}
+//        				
+//        				if (existeEmpleado) { // existeEmpleado=true;
+//        					//System.out.println("Se va a modificar el empleado: " + EmpleadoDAO.getEmpleado(session, id3).toString());
+//        					System.out.println("Se va a modificar el empleado: " + empl.toString());
+//        					String nombre1=pedirString("Introduce el nombre: ");
+//                			String ap1=pedirString("Introduce el primer apellido: ");
+//                			String ap2=pedirString("Introduce el segundo apellido: ");
+//                			Empleado employee3=new Empleado(empl.getCodigo(), nombre1, ap1, ap2);
+//                			
+//                			EmpleadoDAO.updateEmpleado(session, employee3);
+//                			
+//        				}
+//        				else {
+//        					System.out.println("No existe ningún empleado en la BBDD con el id: " + id3);
+//        				}
+//        				
+//        			} catch (Exception e){
+//        				// Captura NumberFormatException
+//        			}
+//        			tx.commit();
+//        			
+//        			break;
+//        			
+//        		case 4:
+//        			
+//        			// Habría que comprobar que existe en la base de datos primero para poder borrarlo
+//        			
+//        			int id4=Integer.parseInt(pedirString("Introduce el id: "));
+//        			EmpleadoDAO.deleteEmpleado(session, EmpleadoDAO.getEmpleado(session, id4));
+//        			        			
+//        			tx.commit();
+//        			break;
+//        			
+//        		case 5:
+//        			break;
+//        		case 6:
+//        			break;
+//        		case 7: 
+//        			break;
+//        		case 8:
+//        			break;
+//        			
+//        		case 9:
+//        			System.out.println("Fin del programa.");
+//        			exit=true;
+//        		} // fin switch
+//            } while (exit==false);
+//        	
+//        	//tx.commit();
+//        	
+//    	} catch (Exception e) {
+//		  if (tx != null) {
+//		    tx.rollback();
+//		  }
+//			logger.error(String.format("%1$s: error when inserting registries.", "insertEmpleado"), e);
+//		}
+//		finally {
+//			if (session != null) {
+//				session.close();
+//			}
+//		}
+//        
+//        
+//        
+//    } // fin main
+//}
+//      
+    
+
