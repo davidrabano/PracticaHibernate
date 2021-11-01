@@ -2,6 +2,8 @@ package dao;
 
 import java.util.List;
 
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 
@@ -10,6 +12,10 @@ import entity.Departamento;
 
 public class DepartamentoDAO {
 	
+	// Hay que crear una instancia de tipo Logger en cada clase que queramos hacer un seguimiento de log
+	private static Logger logger = LogManager.getLogger(DepartamentoDAO.class);
+	//private static Logger logger = LogManager.getLogger(NOMBRE_CLASE.class);
+	
 	private static Session s;
     private static Transaction tx;
     
@@ -17,11 +23,12 @@ public class DepartamentoDAO {
     	try {
     		s=HibernateUtil.getSessionFactory().openSession(); // Copiada la clase HibernateUtil de su proyecto
 			tx=s.beginTransaction();
+			logger.info(">>>> " + Thread.currentThread().getStackTrace()[1].getMethodName() + ": Sesion iniciada.");
 		} catch (Exception e) {
 			if (tx != null) {
 				tx.rollback();
 			}
-			  //logger.error(String.format("%1$s: Error al iniciar sesion.", "iniciarSesion"), e);
+			logger.error(String.format("%1$s: Error al iniciar sesion.", "iniciarSesion"), e);
 		}
     }
 	
@@ -31,11 +38,12 @@ public class DepartamentoDAO {
 			iniciarSesion();
 			s.save(departamento);
 			tx.commit();
+			logger.info(">>>> " + Thread.currentThread().getStackTrace()[1].getMethodName() + ": Departamento insertado.");
 		} catch (Exception e) {
 			if (tx != null) {
 				tx.rollback();
 			}
-				//logger.error(String.format("%1$s: Error en la capa de acceso a datos.", "insertDepartamento"), e);
+			logger.error(String.format("%1$s: Error en la capa de acceso a datos.", "insertDepartamento"), e);
 		}
 		finally {
 			if (s != null) {
@@ -49,13 +57,14 @@ public class DepartamentoDAO {
 		Departamento departamento=new Departamento();
 		try {
 			iniciarSesion();
-			departamento=s.get(Departamento.class, id);		
+			departamento=s.get(Departamento.class, id);
+			logger.info(">>>> " + Thread.currentThread().getStackTrace()[1].getMethodName() + ": Departamento leído.");
 			// tx.commit(); Aquí no hace falta porque no se modifica la tabla.
 		} catch (Exception e) {
 			if (tx != null) {
 				tx.rollback();
 			}
-				//logger.error(String.format("%1$s: Error en la capa de acceso a datos.", "getDepartamento"), e);
+			logger.error(String.format("%1$s: Error en la capa de acceso a datos.", "getDepartamento"), e);
 		}
 		finally {
 			if (s != null) {
@@ -71,11 +80,12 @@ public class DepartamentoDAO {
 			iniciarSesion();
 			s.update(departamento);
 			tx.commit();
+			logger.info(">>>> " + Thread.currentThread().getStackTrace()[1].getMethodName() + ": Departamento actualizado.");
 		} catch (Exception e) {
 			if (tx != null) {
 				tx.rollback();
 			}
-				//logger.error(String.format("%1$s: Error en la capa de acceso a datos.", "updateDepartamento"), e);
+			logger.error(String.format("%1$s: Error en la capa de acceso a datos.", "updateDepartamento"), e);
 		}
 		finally {
 			if (s != null) {
@@ -90,11 +100,12 @@ public class DepartamentoDAO {
 			iniciarSesion();
 			s.delete(departamento);
 			tx.commit();
+			logger.info(">>>> " + Thread.currentThread().getStackTrace()[1].getMethodName() + ": Departamento borrado.");
 		} catch (Exception e) {
 			if (tx != null) {
 				tx.rollback();
 			}
-				//logger.error(String.format("%1$s: Error en la capa de acceso a datos.", "deleteDepartamento"), e);
+			logger.error(String.format("%1$s: Error en la capa de acceso a datos.", "deleteDepartamento"), e);
 		}
 		finally {
 			if (s != null) {
@@ -113,11 +124,12 @@ public class DepartamentoDAO {
 			//String hQuery = "from Departamento order by codigo desc"; // Ordenado por código (de mayor a menor)
 			String hQuery = "from Departamento order by codigo"; // Ordenado por código (de menor a mayor)
 			departamentoList = s.createQuery(hQuery, Departamento.class).list();
+			logger.info(">>>> " + Thread.currentThread().getStackTrace()[1].getMethodName() + ": Recuperada a lista de departamentos de la BBDD.");
 		} catch (Exception e) {
 			if (tx != null) {
 				tx.rollback();
 			}
-				//logger.error(String.format("%1$s: Error en la capa de acceso a datos.", "getAllDepartamentos"), e);
+			logger.error(String.format("%1$s: Error en la capa de acceso a datos.", "getAllDepartamentos"), e);
 		}
 		finally {
 			if (s != null) {
@@ -137,13 +149,14 @@ public class DepartamentoDAO {
 			for (Departamento departamento : departamentosTabla) {
 				if (departamento.getCodigo() == id) {
 					existe = true;
+					logger.info(">>>> " + Thread.currentThread().getStackTrace()[1].getMethodName() + ": Existe el departamento con id=" + id + ".");
 				}
 			}
 		} catch (Exception e) {
 			if (tx != null) {
 				tx.rollback();
 			}
-				//logger.error(String.format("%1$s: Error en la capa de acceso a datos.", "existeDepartamento"), e);
+			logger.error(String.format("%1$s: Error en la capa de acceso a datos.", "existeDepartamento"), e);
 		}
 		finally {
 			if (s != null) {

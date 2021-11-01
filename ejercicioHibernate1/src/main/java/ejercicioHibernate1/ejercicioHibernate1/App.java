@@ -22,6 +22,7 @@ public class App {
 		System.out.println(texto); // Ejemplo: texto="Introduzca si/no"
 		Scanner entrada=new Scanner(System.in);
 		salida=entrada.nextLine();
+		logger.info(">>>> Se ha introducido por consola el string '" + salida + "'.");
 		// entrada.close();		
 		return salida;		
 	}
@@ -30,6 +31,7 @@ public class App {
 		int opcionIntroducida=-1;
 		
 		// Muestra el menú a partir de un array de String y añade la opción "salir" al final
+		logger.info(">>>> Se muestra el menú de opciones.");
 		System.out.println("\nElija una opción del menú siguiente:");
 		for (int i=0; i<opciones.length; i++) {
 			System.out.println("Pulsa " + (i+1) + ": " + opciones[i]);
@@ -41,12 +43,13 @@ public class App {
 			try {
 				opcionIntroducida=Integer.parseInt(entradaIntroducida); // Puede generar excepción si no puede convertir a integer
 				if (opcionIntroducida<=0 || opcionIntroducida>opciones.length+1) {
-					System.out.print("La opción no es válida. ");
+					//System.out.print("La opción no es válida. ");
+					logger.info(">>>> La opción " + opcionIntroducida + " introducida en el menú no es válida.");
 				}
 			} catch (Exception e) {
 				// Captura NumberFormatException (introducir string en el parseInt)
-//				logger.info(">>>> " + Thread.currentThread().getStackTrace()[1].getMethodName() + ": Imposible convertir el string '" + entradaIntroducida + "' en un int: " + e.getClass());
-				// El logger captura el nombre del método que genera la excepción: Aclaración del error: clase de la excepción
+				logger.error(">>>> " + Thread.currentThread().getStackTrace()[1].getMethodName() + ": Imposible convertir el string '" + entradaIntroducida + "' en un int: " + e.getClass());
+				// El logger captura: el nombre del método que genera la excepción: Aclaración del error: clase de la excepción
 			}
 				
 		} while (opcionIntroducida<=0 || opcionIntroducida>opciones.length+1);
@@ -85,8 +88,10 @@ public class App {
         boolean exit = false; // flag de salida para el bucle do-while del switch
 
 		do {
-			switch (mostrarMenu(opciones)) {
+			int opcionMenu=mostrarMenu(opciones);
+			switch (opcionMenu) {
 			case 1: // Insertar Empleado
+				logger.info(">>>> Se ha introducido la opción " + opcionMenu + " del menú: " + opciones[opcionMenu-1]);
 				System.out.println("Se va a insertar un empleado:");
 				String nombre1 = pedirString("Introduce el nombre: ");
 				String apellido1 = pedirString("Introduce el primer apellido: ");
@@ -106,29 +111,35 @@ public class App {
 				break;
 
 			case 2: // Leer/Extraer Empleado
+				logger.info(">>>> Se ha introducido la opción " + opcionMenu + " del menú: " + opciones[opcionMenu-1]);
+				System.out.println("Se va a leer un empleado:");
+				String entradaId2=pedirString("Introduce el id: ");
 				try {
-					System.out.println("Se va a leer un empleado:");
-					String entradaId2=pedirString("Introduce el id: ");
-					int id2 = Integer.parseInt(entradaId2);
+					int id2 = Integer.parseInt(entradaId2); // Puede generar excepción si no puede convertir a integer
 					
 					if (EmpleadoDAO.existeEmpleado(id2)) {
 						Empleado employee2 = EmpleadoDAO.getEmpleado(id2);
-						System.out.println(employee2.toString()); // Lo mostramos por consola
+						//System.out.println(employee2.toString()); // Lo mostramos por consola
+						logger.info(">>>> Leído " + employee2.toString());
 					}
 					else {
-						System.out.println("No existe ningún empleado en la BBDD con el id: " + id2);
+						//System.out.println("No existe ningún empleado en la BBDD con el id: " + id2 + ".");
+						logger.info(">>>> No existe ningún empleado en la BBDD con el id: " + id2 + ".");
 					}
 				} catch (Exception e) {
 					// Captura NumberFormatException (introducir string en el parseInt)
+					logger.error(">>>> " + Thread.currentThread().getStackTrace()[1].getMethodName() + ": Imposible convertir el string '" + entradaId2 + "' en un int: " + e.getClass());
+					// El logger captura: el nombre del método que genera la excepción: Aclaración del error: clase de la excepción
 				}
 
 				break;
 
 			case 3: // Actualizar Empleado
-				try {
-					System.out.println("Se va a actualizar un empleado:");
-					String entradaId3=pedirString("Introduce el id: ");
-					int id3 = Integer.parseInt(entradaId3);
+				logger.info(">>>> Se ha introducido la opción " + opcionMenu + " del menú: " + opciones[opcionMenu-1]);
+				System.out.println("Se va a actualizar un empleado:");
+				String entradaId3=pedirString("Introduce el id: ");				
+				try {					
+					int id3 = Integer.parseInt(entradaId3); // Puede generar excepción si no puede convertir a integer
 					
 					// Hay que comprobar que existe en la base de datos para poder actualizarlo, sino se muestra un mensaje y no se hace nada
 					if (EmpleadoDAO.existeEmpleado(id3)) {
@@ -141,20 +152,24 @@ public class App {
 						EmpleadoDAO.updateEmpleado(employee3);
 
 					} else {
-						System.out.println("No existe ningún empleado en la BBDD con el id: " + id3);
+						//System.out.println("No existe ningún empleado en la BBDD con el id: " + id3 + ".");
+						logger.info(">>>> No existe ningún empleado en la BBDD con el id: " + id3 + ".");
 					}
 
 				} catch (Exception e) {
 					// Captura NumberFormatException (introducir string en el parseInt)
+					logger.error(">>>> " + Thread.currentThread().getStackTrace()[1].getMethodName() + ": Imposible convertir el string '" + entradaId3 + "' en un int: " + e.getClass());
+					// El logger captura: el nombre del método que genera la excepción: Aclaración del error: clase de la excepción
 				}
 
 				break;
 
 			case 4: // Borrar Empleado
-				try {
-					System.out.println("Se va a eliminar un empleado:");					
-					String entradaId4=pedirString("Introduce el id: ");
-					int id4 = Integer.parseInt(entradaId4);
+				logger.info(">>>> Se ha introducido la opción " + opcionMenu + " del menú: " + opciones[opcionMenu-1]);
+				System.out.println("Se va a eliminar un empleado:");					
+				String entradaId4=pedirString("Introduce el id: ");
+				try {					
+					int id4 = Integer.parseInt(entradaId4); // Puede generar excepción si no puede convertir a integer
 					
 					// Hay que comprobar que existe en la base de datos para poder borrarlo, sino se muestra un mensaje y no se hace nada
 					if (EmpleadoDAO.existeEmpleado(id4)) {
@@ -162,88 +177,107 @@ public class App {
 						EmpleadoDAO.deleteEmpleado(EmpleadoDAO.getEmpleado(id4));
 					} 
 					else {
-						System.out.println("No existe ningún empleado en la BBDD con el id: " + id4);
+						//System.out.println("No existe ningún empleado en la BBDD con el id: " + id4 + ".");
+						logger.info(">>>> No existe ningún empleado en la BBDD con el id: " + id4 + ".");
 					}
 
 				} catch (Exception e) {
 					// Captura NumberFormatException (introducir string en el parseInt)
+					logger.error(">>>> " + Thread.currentThread().getStackTrace()[1].getMethodName() + ": Imposible convertir el string '" + entradaId4 + "' en un int: " + e.getClass());
+					// El logger captura: el nombre del método que genera la excepción: Aclaración del error: clase de la excepción
 				}
 
 				break;
 
 			case 5:	// Insertar Departamento
-				try {
-					System.out.println("Se va a insertar un departamento:");
-					String nombre5 = pedirString("Introduce el nombre: ");
-					String entradaCodResponsable = pedirString("Introduce el código de responsable: ");
-					int codResponsable=Integer.parseInt(entradaCodResponsable); // Puede generar excepción si no puede convertir a integer
+				logger.info(">>>> Se ha introducido la opción " + opcionMenu + " del menú: " + opciones[opcionMenu-1]);
+				System.out.println("Se va a insertar un departamento:");
+				String nombre5 = pedirString("Introduce el nombre: ");
+				String entradaCodResponsable5 = pedirString("Introduce el código de responsable: ");
+				try {					
+					int codResponsable5=Integer.parseInt(entradaCodResponsable5); // Puede generar excepción si no puede convertir a integer
 					
 					// Hay que ver el último id de la tabla para pasar como parámetro el inmediato superior
 					List<Departamento> departamentosTabla = DepartamentoDAO.getAllDepartamentos();
 					int ultimoCodigoUsado = departamentosTabla.get(departamentosTabla.size() - 1).getCodigo(); // Se coge el código del último (size-1) elemento de la lista
 				
-					Departamento deparment5=new Departamento(ultimoCodigoUsado+1, nombre5, codResponsable);
+					Departamento deparment5=new Departamento(ultimoCodigoUsado+1, nombre5, codResponsable5);
 					
 					DepartamentoDAO.insertDepartamento(deparment5);
 				} catch (Exception e) {
 					// Captura NumberFormatException (introducir string en el parseInt)
-					System.out.println("Tipo incorrecto");
+					logger.error(">>>> " + Thread.currentThread().getStackTrace()[1].getMethodName() + ": Imposible convertir el string '" + entradaCodResponsable5 + "' en un int: " + e.getClass());
+					// El logger captura: el nombre del método que genera la excepción: Aclaración del error: clase de la excepción
 				}
 				
 				break;
 				
 			case 6: // Leer/Extraer Departamento
-				try {
-					System.out.println("Se va a leer un departamento:");
-					String entradaId6=pedirString("Introduce el id: ");
-					int id6 = Integer.parseInt(entradaId6);
+				logger.info(">>>> Se ha introducido la opción " + opcionMenu + " del menú: " + opciones[opcionMenu-1]);
+				System.out.println("Se va a leer un departamento:");
+				String entradaId6=pedirString("Introduce el id: ");
+				try {					
+					int id6 = Integer.parseInt(entradaId6); // Puede generar excepción si no puede convertir a integer
 					
 					if (DepartamentoDAO.existeDepartamento(id6)) {
 						Departamento department2 = DepartamentoDAO.getDepartamento(id6);
-						System.out.println(department2.toString()); // Lo mostramos por consola
+						//System.out.println(department2.toString()); // Lo mostramos por consola
+						logger.info(">>>> Leído " + department2.toString());
 					}
 					else {
-						System.out.println("No existe ningún departamento en la BBDD con el id: " + id6);
+						//System.out.println("No existe ningún departamento en la BBDD con el id: " + id6 + ".");
+						logger.info(">>>> No existe ningún departamento en la BBDD con el id: " + id6 + ".");
 					}
 				} catch (Exception e) {
 					// Captura NumberFormatException (introducir string en el parseInt)
-					System.out.println("Tipo incorrecto");
+					logger.error(">>>> " + Thread.currentThread().getStackTrace()[1].getMethodName() + ": Imposible convertir el string '" + entradaId6 + "' en un int: " + e.getClass());
+					// El logger captura: el nombre del método que genera la excepción: Aclaración del error: clase de la excepción
 				}
 
 				break;
 
 			case 7:  // Actualizar Departamento
-				try {
-					System.out.println("Se va a actualizar un departamento:");
-					String entradaId7=pedirString("Introduce el id: ");
-					int id7 = Integer.parseInt(entradaId7);
+				logger.info(">>>> Se ha introducido la opción " + opcionMenu + " del menú: " + opciones[opcionMenu-1]);
+				System.out.println("Se va a actualizar un departamento:");
+				String entradaId7=pedirString("Introduce el id: ");
+				try {					
+					int id7 = Integer.parseInt(entradaId7); // Puede generar excepción si no puede convertir a integer
 					
 					// Hay que comprobar que existe en la base de datos para poder actualizarlo, sino se muestra un mensaje y no se hace nada
 					if (DepartamentoDAO.existeDepartamento(id7)) {
 						System.out.println("Se va a actualizar el departamento: " + DepartamentoDAO.getDepartamento(id7).toString());
 						String nombre7 = pedirString("Introduce el nombre: ");
-						String entradaCodResponsable = pedirString("Introduce el código de responsable: ");
-						int codResponsable=Integer.parseInt(entradaCodResponsable); // Puede generar excepción si no puede convertir a integer
+						String entradaCodResponsable7 = pedirString("Introduce el código de responsable: ");
+						try {
+							int codResponsable7=Integer.parseInt(entradaCodResponsable7); // Puede generar excepción si no puede convertir a integer
 						
-						Departamento deparment7=new Departamento(id7, nombre7, codResponsable);
+							Departamento deparment7=new Departamento(id7, nombre7, codResponsable7);
 						
-						DepartamentoDAO.updateDepartamento(deparment7);
+							DepartamentoDAO.updateDepartamento(deparment7);
+						} catch (Exception e) {
+							// Captura NumberFormatException (introducir string en el parseInt)
+							logger.error(">>>> " + Thread.currentThread().getStackTrace()[1].getMethodName() + ": Imposible convertir el string '" + entradaCodResponsable7 + "' en un int: " + e.getClass());
+							// El logger captura: el nombre del método que genera la excepción: Aclaración del error: clase de la excepción
+						}
 					} else {
-						System.out.println("No existe ningún departamento en la BBDD con el id: " + id7);
+						//System.out.println("No existe ningún departamento en la BBDD con el id: " + id7 + ".");
+						logger.info(">>>> No existe ningún departamento en la BBDD con el id: " + id7 + ".");
 					}
 
 				} catch (Exception e) {
 					// Captura NumberFormatException (introducir string en el parseInt)
-					System.out.println("Tipo incorrecto");
+					logger.error(">>>> " + Thread.currentThread().getStackTrace()[1].getMethodName() + ": Imposible convertir el string '" + entradaId7 + "' en un int: " + e.getClass());
+					// El logger captura: el nombre del método que genera la excepción: Aclaración del error: clase de la excepción
 				}
 
 				break;
 
 			case 8: // Borrar Departamento
-				try {
-					System.out.println("Se va a eliminar un departamento:");					
-					String entradaId8=pedirString("Introduce el id: ");
-					int id8 = Integer.parseInt(entradaId8);
+				logger.info(">>>> Se ha introducido la opción " + opcionMenu + " del menú: " + opciones[opcionMenu-1]);
+				System.out.println("Se va a eliminar un departamento:");					
+				String entradaId8=pedirString("Introduce el id: ");
+				try {					
+					int id8 = Integer.parseInt(entradaId8); // Puede generar excepción si no puede convertir a integer
 					
 					// Hay que comprobar que existe en la base de datos para poder borrarlo, sino se muestra un mensaje y no se hace nada
 					if (DepartamentoDAO.existeDepartamento(id8)) {
@@ -251,28 +285,31 @@ public class App {
 						DepartamentoDAO.deleteDepartamento(DepartamentoDAO.getDepartamento(id8));
 					} 
 					else {
-						System.out.println("No existe ningún departamento en la BBDD con el id: " + id8);
+						//System.out.println("No existe ningún departamento en la BBDD con el id: " + id8 + ".");
+						logger.info(">>>> No existe ningún departamento en la BBDD con el id: " + id8 + ".");
 					}
 
 				} catch (Exception e) {
 					// Captura NumberFormatException (introducir string en el parseInt)
-					System.out.println("Tipo incorrecto");
+					logger.error(">>>> " + Thread.currentThread().getStackTrace()[1].getMethodName() + ": Imposible convertir el string '" + entradaId8 + "' en un int: " + e.getClass());
+					// El logger captura: el nombre del método que genera la excepción: Aclaración del error: clase de la excepción
 				}
 
 				break;
 			case 9:
+				logger.info(">>>> Se ha introducido la opción " + opcionMenu + " del menú: Salir.");
 				System.out.println("Fin del programa.");
 				exit = true;
 				break;
 				
 			} // fin switch
 		} while (exit == false);
-        
+		logger.info(">>>> Fin del programa.");
     } // fin main
 }
         
     
-//VERSION CON session COMO PARÁMETRO Y SIN LA PARTE DE DEPARTAMENTOS
+//VERSION CON session COMO PARÁMETRO SIN LA PARTE DE DEPARTAMENTOS Y SIN LA PARTE DE LOGGER
 //
 //package ejercicioHibernate1.ejercicioHibernate1;
 //
